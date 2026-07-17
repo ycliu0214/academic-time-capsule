@@ -23,7 +23,7 @@ This section includes Jupyter Notebooks and algorithm implementations developed 
 * **CH:** 探討並實作 Sequence to Sequence (Seq2Seq) 架構與長短期記憶神經網路（LSTM），建立將英文翻譯為繁體中文的機器翻譯模型。
 * **EN:** Explores and implements the Sequence to Sequence (Seq2Seq) architecture and Long Short-Term Memory (LSTM) networks to build a machine translation model from English to Traditional Chinese.
 
-#### `sequence_alignment.py` (序列比對演算法 / Sequence Alignment)
+#### `SeqAlign.ipynb`
 * **CH:** 以動態規劃（Dynamic Programming）實作整體最佳化序列比對（Global Alignment）的 Python 腳本，可讀取 FASTA 格式檔案並計算序列相似度與路徑追溯。
 * **EN:** A Python script implementing global sequence alignment using dynamic programming. It reads FASTA files, calculates sequence similarity, and performs traceback.
 
