@@ -27,6 +27,20 @@ This section includes Jupyter Notebooks and algorithm implementations developed 
 * **CH:** 以動態規劃（Dynamic Programming）實作整體最佳化序列比對（Global Alignment）的 Python 腳本，可讀取 FASTA 格式檔案並計算序列相似度與路徑追溯。
 * **EN:** A Python script implementing global sequence alignment using dynamic programming. It reads FASTA files, calculates sequence similarity, and performs traceback.
 
+#### `Inception_v4.ipynb`
+* **CH:** 使用 TensorFlow / Keras 實作的 Inception-v4 深度神經網路架構。
+* **EN:** Implementation of the Inception-v4 deep neural network architecture using TensorFlow and Keras.
+
+#### `Principal_component_analysis.ipynb`
+* **CH:** CH: 主成份分析 (PCA) 介紹與實作。本筆記本深入淺出地解釋了共變異數矩陣、矩陣對角化等數學基礎，並透過 NumPy 原始實作與 Scikit-learn 套件應用，示範如何進行降維與特徵提取，最後以「特徵臉 (Eigenfaces)」作為實際應用案例。
+* **EN:** Introduction and implementation of Principal Component Analysis (PCA). This notebook explains mathematical foundations such as covariance matrices and eigendecomposition. It demonstrates dimensionality reduction and feature extraction using both raw NumPy implementation and Scikit-learn, concluding with an "Eigenfaces" application.
+
+
+#### `mask_rcnn_practice.ipynb`
+* **CH:** CH: 本專案基於 TensorFlow 與 OpenCV 實作 Mask R-CNN 實例分割（Instance Segmentation）模型。透過載入預訓練的 COCO 資料集權重與設定檔，對輸入影像進行物件偵測並產出像素級別的遮罩（Mask），實現物體輪廓的精確分離與視覺化。
+* **EN:** An implementation of Mask R-CNN for instance segmentation using TensorFlow and OpenCV. By loading pre-trained COCO dataset weights and configuration files, the project performs object detection on input images and generates pixel-level masks, achieving precise object contour extraction and visualization.
+
+
 ## Toolbox
 ### 實驗室分析工具 / Laboratory Analysis Tools
 
