@@ -1,8 +1,8 @@
 # 實驗室分析工具與機器學習練習集 / Lab Analysis Tools and Machine Learning Exercises
 
-本專案包含了過往在深度學習、自然語言處理上的演算法實作練習，以及用於分析蛋白質與分子動力學模擬（Molecular Dynamics Simulations）的各項客製化工具腳本。
+本專案包含了過往在深度學習、自然語言處理上的實作練習，以及用於分析蛋白質與分子動力學模擬（Molecular Dynamics Simulations）的各項客製化工具腳本。
 
-This repository contains past algorithmic implementations in deep learning and natural language processing, as well as customized scripts for analyzing proteins and Molecular Dynamics Simulations.
+This repository contains past implementations in deep learning and natural language processing, as well as customized scripts for analyzing proteins and Molecular Dynamics Simulations.
 
 ## Playground
 ### 機器學習與神經網路練習 / Machine Learning and Neural Network
