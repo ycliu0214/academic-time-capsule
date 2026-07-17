@@ -1,0 +1,2 @@
+開啟s2_atuo_connect_electrode.pl
+更改正確的$lib_path到你目前存放的正確目錄

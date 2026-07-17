@@ -1,0 +1,2 @@
+>>>start setting color bar range (timeLag range or user's definition)
+100

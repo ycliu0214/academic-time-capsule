@@ -1,0 +1,44 @@
+1. 檢查程式與檔案是否數量、名稱正確：
+	檔案：
+	01_getAvgTraj.tcl
+	02_getCM.tcl
+	03_getAvgVel.pl
+	04_CC_Loop.pl
+	05_CC_Loop_fix.pl
+	06_data_mv.pl
+	07_getCC_maxMatrix.pl
+	08_getTargetCC_maxMatrix.pl
+	09_get_DataArray_and_GridLine.pl
+	10_getGraph.pl
+
+	資料夾：
+	setting
+		01_setting_file.txt
+		04_setting_file.txt
+		08_setting_file.txt
+		09_setting_file.txt
+		10_setting_file.txt
+
+	source
+		crossCorrelation.pl
+		get_sequence.tcl
+		sequence_transform.pl
+		trajectory_smooth_sans.tcl
+
+	temporal_file
+		(空)
+
+2. 進入setting資料夾下，開啟各檔案進行設定，設定檔檔名的編號與程式編號對應。
+
+3. 執行編號01至10的程式：
+	vmd -dispdev text -e 01_getAvgTraj.tcl
+	vmd -dispdev text -e 02_getCM.tcl
+	perl 03_getAvgVel.pl
+	perl 04_CC_Loop.pl
+	perl 05_CC_Loop_fix.pl
+	perl 06_data_mv.pl
+	perl 07_getCC_maxMatrix.pl
+	perl 08_getTargetCC_maxMatrix.pl
+	perl 09_get_DataArray_and_GridLine.pl
+	perl 10_getGraph.pl
+	perl 10_data_mv.pl

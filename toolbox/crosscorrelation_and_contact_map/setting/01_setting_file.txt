@@ -1,0 +1,28 @@
+#start for user tcl definition
+
+set psfFile "tmd.psf"
+#chose psf file
+
+set dcdFile "tmd.dcd"
+#chose dcd file
+
+set halfWidth4smooth 100
+#chose smooth half windows number
+
+set startDcdFrame 0
+#chose start frame
+
+set endDcdFrame -1
+#chose end frame
+
+set stepFrame 1
+#chose step
+
+set bbAlign "yes"
+#chose backbone alignment or not (yes or no)
+
+
+#end for user tcl definition
+set repeatNum 1
+set outDCD_filePrefix "avg"
+set avgSel "all"

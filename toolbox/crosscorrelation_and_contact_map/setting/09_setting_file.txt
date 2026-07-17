@@ -1,0 +1,2 @@
+>>>start setting max CC volume
+0.5

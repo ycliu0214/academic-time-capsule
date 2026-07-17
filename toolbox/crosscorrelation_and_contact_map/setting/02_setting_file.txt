@@ -1,0 +1,11 @@
+#start for user tcl definition
+
+
+set startDcdFrame 0
+#chose start frame
+
+set endDcdFrame -1
+#chose end frame
+
+set stepFrame 1
+#chose step

@@ -1,0 +1,31 @@
+#read dcd
+mol new ../../ionized.psf type psf first 0 last -1 step 1 waitfor all
+mol addfile ../../s2_heat_out.coor type pdb first 0 last 0 step 1 waitfor all
+mol addfile ../../s3_equi_out.dcd type dcd first 0 last 0 step 1 waitfor all
+#mol addfile ../../s3_equi_out.dcd type dcd first 5000 last 5000 step 1 waitfor all
+#mol addfile ../../s3_equi_out.dcd type dcd first 10000 last 10000 step 1 waitfor all
+#mol addfile ../../s3_equi_out.dcd type dcd first 15000 last 15000 step 1 waitfor all
+#mol addfile ../../s3_equi_out.dcd type dcd first 20000 last 20000 step 1 waitfor all
+
+#lignment
+set refSel [atomselect top "nucleic and noh" frame 0]
+set compareSel [atomselect top "nucleic and noh"]
+set moveSel [atomselect top "all"]
+for {set i 1} {$i < [molinfo top get numframes]} {incr i 1} {
+    $compareSel frame $i
+    $moveSel frame $i
+    $moveSel move [measure fit $compareSel $refSel]
+}
+
+#pick out the groove water
+set water [atomselect top "(same residue as water within 3.5 of nucleic and noh) and (same residue as water within 4 of (nucleic and noh and not backbone and not resid 5 11)) and noh" frame 1]
+set output [open "unknown_groove_water.txt" w]
+foreach index [$water get index] {
+    set target [atomselect top "index $index" frame 1]
+    set coord [$target get {x y z}]
+    puts $output "$index [lindex $coord 0]"
+}
+close $output
+
+exit;
+    

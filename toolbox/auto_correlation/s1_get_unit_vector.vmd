@@ -1,0 +1,36 @@
+#unit vector
+proc unitVec {origin} {
+    set distance [expr ([lindex $origin 0] ** 2 + [lindex $origin 1] ** 2 + [lindex $origin 2] ** 2) ** 0.5]
+    return [list [expr [lindex $origin 0] / $distance] [expr [lindex $origin 1] / $distance] [expr [lindex $origin 2] / $distance]]
+}
+
+
+#read dcd
+mol new ../../ionized.psf type psf first 0 last -1 step 1 waitfor all
+mol addfile ../../s3_equi_out.dcd type dcd first 0 last 24999 step 1 waitfor all
+
+
+#alignment
+set refSel [atomselect top "nucleic and noh" frame 0]
+set compareSel [atomselect top "nucleic and noh"]
+set moveSel [atomselect top "all"]
+for {set i 1} {$i < [molinfo top get numframes]} {incr i 1} {
+    $compareSel frame $i
+    $moveSel frame $i
+    $moveSel move [measure fit $compareSel $refSel]
+}
+
+
+set targetList [atomselect top "(same residue as water within 5 of nucleic and resid 19 20 21 22 and not backbone) and (same residue as water within 5 of nucleic and resid 13 14 15 16 and not backbone) and not ((same residue as water within 5 of nucleic and resid 1 2 3 4 and not backbone) and (same residue as water within 5 of nucleic and resid 7 8 9 10 and not backbone)) and not ((same residue as water within 5 of nucleic and resid 7 8 9 10 and not backbone) and (same residue as water within 5 of nucleic and resid 19 20 21 22 and not backbone)) and not ((same residue as water within 5 of nucleic and resid 13 14 15 16 and not backbone) and (same residue as water within 5 of nucleic and resid 1 2 3 4 and not backbone)) and not (same residue as water within 5 of nucleic and resid 5 6 11 12 17 18 and backbone) and noh"]
+
+foreach index [$targetList get index] {
+    set output [open water_${index}.txt w]
+    set target [atomselect top "index $index [expr $index + 1] [expr $index + 2]"]
+    for {set i 0} {$i < [molinfo top get numframes]} {incr i 1} {
+        $target frame $i
+        puts $output "$i [unitVec [measure dipole $target]]"
+    }
+    close $output
+}
+
+exit;

@@ -1,0 +1,297 @@
+#!/bin/sh
+#build by Yu-Cheng Liu
+#c2.hpc.sinica.edu.tw
+if [ "$#" -ne 1 ]
+then
+    echo "You have to assign a g09 script input file !!"
+    echo "If the name of the namd script input file is aaa.gjf,"
+    echo "then you may enter the following command: g09sub aaa"
+    echo
+    echo "<< No job is submitted !! >>"
+    exit
+fi
+
+JOB=$1
+HERE=`pwd`
+USER=`whoami`
+cd
+HOME=`pwd`
+cd $HERE
+
+if [ -e $JOB.na ]
+then
+	/bin/rm $JOB.na
+fi
+
+if [ -e "setting_error.dat" ]
+then
+	rm setting_error.dat
+fi
+
+if [ -e "setting.dat" ]
+then
+	rm setting.dat
+fi
+
+echo 'How many CPUs do you want to submit your job?'
+echo '8cpu or 12cpu? [type "xcpu"]'
+read NCPUS
+if [ "$NCPUS" = 8cpu ]
+then
+	NCPU='8'
+	NMEMO='32g'
+	NGE='ge'
+	echo 'How many days does you need?'
+	echo '3days, 7days, 14days [type "xdays"]'
+	read CPUDAYS
+	if [ "$CPUDAYS" = 3days ]
+	then
+		NDAY='3d'
+	elif [ "$CPUDAYS" = 7days ]
+	then
+		NDAY='7d'
+	elif [ "$CPUDAYS" = 14days ]
+	then
+		NDAY='14d'
+	fi
+fi
+
+if [ "$NCPUS" = 12cpu ]
+then
+	NCPU='12'
+	NMEMO='48g'
+	NGE='10ge'
+	echo 'How many days does you need?'
+	echo '3days, 7days, 14days [type "xdays"]'
+	read CPUDAYS
+	if [ "$CPUDAYS" = 3days ]
+	then
+		NDAY='3d'
+	elif [ "$CPUDAYS" = 7days ]
+	then
+		NDAY='7d'
+	elif [ "$CPUDAYS" = 14days ]
+	then
+		NDAY='14d'
+	fi
+fi
+
+echo 'Enter the number of left electrode sulfur.'
+read LS
+
+echo 'Enter the number of right electrode sulfur.'
+read RS
+
+echo 'Choose the Au lattice length.'
+echo '[type "2.88" or "2.83"]'
+read LATTICE
+
+echo "$LS" > setting.dat
+echo "$RS" >> setting.dat
+echo "$LATTICE" >> setting.dat
+
+dos2unix ${JOB}.gjf
+
+perl ${HOME}/bin/AutoOpt2Ant/s0_setting.pl ${JOB}.gjf $LS $RS $LATTICE
+
+if [ -e "setting_error.dat" ]
+then
+	echo `grep "wrong" setting_error.dat`
+	exit
+fi
+
+
+cat << EOF > ${JOB}.na
+
+# Specifies the name of the shell to use for the job(recommand)
+#$ -S /bin/sh
+# Job name(optional)
+#$ -N ${JOB}
+# Specifies queue name(required)
+#$ -q c${NCPU}-${NMEMO}-${NGE}-${NDAY}
+# Specifies number of nodes(required)
+#$ -pe mpich 1
+# Specifies output files(optional)
+#$ -e err
+#$ -o log
+
+# This job's working directory(recommand)
+#$ -cwd
+
+cd $HERE
+
+
+#optimize
+########################################################################
+
+source /etc/hpc.d/g09.sh
+unset NorTer
+
+#check step or begin sto-3g
+if [ -e "StepCheck.log" ]
+then
+	unset StepCheck
+	StepCheck=\`awk '{print \$2}' StepCheck.log | tail \-1f\`
+else
+	unset NorTer
+	echo "The sto-3g job begins at:" \`date +%Y/%m/%d-%k:%M:%S\`
+	g09 ${JOB}.gjf
+	echo "The sto-3g job completes at:" \`date +%Y/%m/%d-%k:%M:%S\`
+	NorTer=\`grep 'Normal termination of Gaussian 09' ${JOB}.log | awk '{print \$1}'\`
+	if [ "\$NorTer" == "Normal" ]
+	then
+		echo "step 1 sto3g finish" > StepCheck.log
+		unset StepCheck
+		StepCheck="1"
+		mkdir sto3g
+		mv ${JOB}.gjf sto3g/
+		mv ${JOB}.log sto3g/
+		mv ${JOB}.chk sto3g/
+	else
+		exit
+	fi
+fi
+
+
+#begin 321g
+if [ "\$StepCheck" == "1" ]
+then
+	unset NorTer
+	perl ${HOME}/bin/AutoOpt2Ant/s1_opt_basic_change.pl sto3g/${JOB}.gjf sto3g/${JOB}.log ${JOB}.gjf
+	echo "The 3-21g job begins at:" \`date +%Y/%m/%d-%k:%M:%S\`
+	g09 ${JOB}.gjf
+	echo "The 3-21g job completes at:" \`date +%Y/%m/%d-%k:%M:%S\`
+	NorTer=\`grep 'Normal termination of Gaussian 09' ${JOB}.log | awk '{print \$1}'\`
+	if [ "\$NorTer" == "Normal" ]
+	then
+		echo "step 2 321g finish" >> StepCheck.log
+		unset StepCheck
+		StepCheck="2"
+		mkdir 321g
+		mv ${JOB}.gjf 321g/
+		mv ${JOB}.log 321g/
+		mv ${JOB}.chk 321g/
+	else
+		exit
+	fi
+fi
+
+
+#begin 631g
+if [ "\$StepCheck" == "2" ]
+then
+	unset NorTer
+	perl ${HOME}/bin/AutoOpt2Ant/s1_opt_basic_change.pl 321g/${JOB}.gjf 321g/${JOB}.log ${JOB}.gjf
+	echo "The 6-31g job begins at:" \`date +%Y/%m/%d-%k:%M:%S\`
+	g09 ${JOB}.gjf
+	echo "The 6-31g job completes at:" \`date +%Y/%m/%d-%k:%M:%S\`
+	NorTer=\`grep 'Normal termination of Gaussian 09' ${JOB}.log | awk '{print \$1}'\`
+	if [ "\$NorTer" == "Normal" ]
+	then
+		echo "step 3 631g finish" >> StepCheck.log
+		unset StepCheck
+		StepCheck="3"
+		mkdir 631g
+		mv ${JOB}.gjf 631g/
+		mv ${JOB}.log 631g/
+		mv ${JOB}.chk 631g/
+	else
+		exit
+	fi
+fi
+
+#begin auto connect electrode
+if [ "\$StepCheck" == "3" ]
+then
+	unset NorTer
+	echo "The auto connect electrode job begins at:" \`date +%Y/%m/%d-%k:%M:%S\`
+	perl ${HOME}/bin/AutoOpt2Ant/s1_opt_basic_change.pl 631g/${JOB}.gjf 631g/${JOB}.log ${JOB}.gjf
+	perl ${HOME}/bin/AutoOpt2Ant/s2_atuo_connect_electrode.pl ${JOB}.gjf < setting.dat > AutoConnectElec.log
+	echo "The auto connect electrode job completes at:" \`date +%Y/%m/%d-%k:%M:%S\`
+	if [ -e AutoConnectElec.log ]
+	then
+		NorTer=\`grep 'Your structure can't be connected to electrodes.' AutoConnectElec.log | awk '{print \$1}'\`
+		if [ "\$NorTer" == "Your" ]
+		then
+			exit
+		else
+			echo "step 4 auto connect electrode finish" >> StepCheck.log
+			unset StepCheck
+			StepCheck="4"
+			rm AutoConnectElec.log
+			/usr1/ycliu2/bin/dos2unix ${JOB}_Au.gjf
+			/usr1/ycliu2/bin/dos2unix ${JOB}_Au.ini
+		fi
+	else
+		exit
+	fi
+fi
+
+source /etc/hpc.d/g09.sh
+source /usr1/ycliu2/bin/ant_g09.sh
+
+#begin get NALPHA NBETA
+if [ "\$StepCheck" == "4" ]
+then
+	unset NorTer
+	echo "The getting NALPHA NBETA job begins at:" \`date +%Y/%m/%d-%k:%M:%S\`
+	sed -i '1s/^/%KJob L301\n/' ${JOB}_Au.gjf
+	g09 ${JOB}_Au.gjf
+	sed -i '1d' ${JOB}_Au.gjf
+	sed -i "s/\`grep NALPHA ${JOB}_Au.ini\`/  NALPHA = \`sed -n /'alpha electrons'/p ${JOB}_Au.log |sed -n /'beta electrons'/p | awk '{print \$1}'\`/" ${JOB}_Au.ini
+	sed -i "s/\`grep NBETA ${JOB}_Au.ini\`/  NBETA = \`sed -n /'alpha electrons'/p ${JOB}_Au.log |sed -n /'beta electrons'/p | awk '{print \$4}'\`/" ${JOB}_Au.ini
+	rm ${JOB}_Au.chk
+	sleep 60
+	echo "The getting NALPHA NBETA job completes at:" \`date +%Y/%m/%d-%k:%M:%S\`
+	NorTer=\`sed -n /'alpha electrons'/p ${JOB}_Au.log | sed -n /'beta electrons'/p | awk '{print \$2}'\`
+	if [ "\$NorTer" == 'alpha' ]
+	then
+		echo "step 5 get NALPHA NBETA finish" >> StepCheck.log
+		unset StepCheck
+		StepCheck="5"
+		rm ${JOB}.gjf
+	else
+		exit
+	fi
+fi
+
+#begin ANT
+if [ "\$StepCheck" == "5" ]
+then
+	unset NorTer
+	echo "The ANT job begins at:" \`date +%Y/%m/%d-%k:%M:%S\`
+	g09 ${JOB}_Au.gjf
+	echo "The ANT job completes at:" \`date +%Y/%m/%d-%k:%M:%S\`
+	NorTer=\`grep 'Normal termination of Gaussian 09' ${JOB}_Au.log | awk '{print \$1}'\`
+	if [ "\$NorTer" == "Normal" ]
+	then
+		echo "step 6 ANT finish" >> StepCheck.log
+		mkdir ANT
+		mv ${JOB}_Au.gjf ANT/
+		mv ${JOB}_Au.ini ANT/
+		mv ${JOB}_Au.log ANT/
+		mv ${JOB}_Au.chk ANT/
+		mv ${JOB}_Au.xyz ANT/
+		mv DOS.${JOB}_Au.dat ANT/
+		mv P.${JOB}_Au.dat ANT/
+		mv Q.${JOB}_Au.dat ANT/
+		mv T.${JOB}_Au.dat ANT/
+		mv Test.FChk ANT/
+	else
+		exit
+	fi
+fi
+
+	
+########################################################################
+
+exit
+
+EOF
+
+chmod +x $JOB.na
+
+/opt/gridengine/bin/lx24-amd64/qsub $JOB.na
+
+exit
+

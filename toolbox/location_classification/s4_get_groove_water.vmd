@@ -1,0 +1,90 @@
+#unit vector
+proc unitVec {origin} {
+    set distance [expr ([lindex $origin 0] ** 2 + [lindex $origin 1] ** 2 + [lindex $origin 2] ** 2) ** 0.5]
+    return [list [expr [lindex $origin 0] / $distance] [expr [lindex $origin 1] / $distance] [expr [lindex $origin 2] / $distance]]
+}
+
+#read dcd
+mol new ../../ionized.psf type psf first 0 last -1 step 1 waitfor all
+mol addfile ../../s3_equi_out.dcd type dcd first 0 last 29999 step 1 waitfor all
+#mol addfile ../../s3_equi_out.dcd type dcd first 5000 last 34999 step 1 waitfor all
+#mol addfile ../../s3_equi_out.dcd type dcd first 10000 last 39999 step 1 waitfor all
+#mol addfile ../../s3_equi_out.dcd type dcd first 15000 last 44999 step 1 waitfor all
+#mol addfile ../../s3_equi_out.dcd type dcd first 20000 last 49999 step 1 waitfor all
+
+#lignment
+set refSel [atomselect top "nucleic and noh" frame 0]
+set compareSel [atomselect top "nucleic and noh"]
+set moveSel [atomselect top "all"]
+for {set i 1} {$i < [molinfo top get numframes]} {incr i 1} {
+    $compareSel frame $i
+    $moveSel frame $i
+    $moveSel move [measure fit $compareSel $refSel]
+}
+
+
+#set data [split [read [open "narrow_0/index_list.txt" r]] "\n"]
+#set data2 [split [read [open "middle_90/index_list.txt" r]] "\n"]
+#set data3 [split [read [open "wide_180/index_list.txt" r]] "\n"]
+#set data4 [split [read [open "middle_270/index_list.txt" r]] "\n"]
+
+
+set input [open "narrow_0/index_list.txt" r]
+set data [split [read $input] "\n"]
+close $input
+for {set i 0} {$i < [expr [llength $data] - 1]} {incr i 1} {
+    set index [lindex $data $i]
+    set output [open narrow_0/water_dipole_${index}.dat w]
+    set target [atomselect top "index $index [expr $index + 1] [expr $index + 2]"]
+    for {set j 0} {$j < [molinfo top get numframes]} {incr j 1} {
+        $target frame $j
+        puts $output "$j [unitVec [measure dipole $target]]"
+    }
+    close $output
+}
+
+set input [open "middle_90/index_list.txt" r]
+set data [split [read $input] "\n"]
+close $input
+for {set i 0} {$i < [expr [llength $data] - 1]} {incr i 1} {
+    set index [lindex $data $i]
+    set output [open middle_90/water_dipole_${index}.dat w]
+    set target [atomselect top "index $index [expr $index + 1] [expr $index + 2]"]
+    for {set j 0} {$j < [molinfo top get numframes]} {incr j 1} {
+        $target frame $j
+        puts $output "$j [unitVec [measure dipole $target]]"
+    }
+    close $output
+}
+
+set input [open "wide_180/index_list.txt" r]
+set data [split [read $input] "\n"]
+close $input
+for {set i 0} {$i < [expr [llength $data] - 1]} {incr i 1} {
+    set index [lindex $data $i]
+    set output [open wide_180/water_dipole_${index}.dat w]
+    set target [atomselect top "index $index [expr $index + 1] [expr $index + 2]"]
+    for {set j 0} {$j < [molinfo top get numframes]} {incr j 1} {
+        $target frame $j
+        puts $output "$j [unitVec [measure dipole $target]]"
+    }
+    close $output
+}
+
+set input [open "middle_270/index_list.txt" r]
+set data [split [read $input] "\n"]
+close $input
+for {set i 0} {$i < [expr [llength $data] - 1]} {incr i 1} {
+    set index [lindex $data $i]
+    set output [open middle_270/water_dipole_${index}.dat w]
+    set target [atomselect top "index $index [expr $index + 1] [expr $index + 2]"]
+    for {set j 0} {$j < [molinfo top get numframes]} {incr j 1} {
+        $target frame $j
+        puts $output "$j [unitVec [measure dipole $target]]"
+    }
+    close $output
+}
+
+
+exit;
+

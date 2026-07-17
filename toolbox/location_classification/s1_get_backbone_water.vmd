@@ -1,0 +1,49 @@
+#unit vector
+proc unitVec {origin} {
+    set distance [expr ([lindex $origin 0] ** 2 + [lindex $origin 1] ** 2 + [lindex $origin 2] ** 2) ** 0.5]
+    return [list [expr [lindex $origin 0] / $distance] [expr [lindex $origin 1] / $distance] [expr [lindex $origin 2] / $distance]]
+}
+
+#read dcd
+mol new ../../ionized.psf type psf first 0 last -1 step 1 waitfor all
+mol addfile ../../s3_equi_out.dcd type dcd first 0 last 29999 step 1 waitfor all
+#mol addfile ../../s3_equi_out.dcd type dcd first 5000 last 34999 step 1 waitfor all
+#mol addfile ../../s3_equi_out.dcd type dcd first 10000 last 39999 step 1 waitfor all
+#mol addfile ../../s3_equi_out.dcd type dcd first 15000 last 44999 step 1 waitfor all
+#mol addfile ../../s3_equi_out.dcd type dcd first 20000 last 49999 step 1 waitfor all
+
+#lignment
+set refSel [atomselect top "nucleic and noh" frame 0]
+set compareSel [atomselect top "nucleic and noh"]
+set moveSel [atomselect top "all"]
+for {set i 1} {$i < [molinfo top get numframes]} {incr i 1} {
+    $compareSel frame $i
+    $moveSel frame $i
+    $moveSel move [measure fit $compareSel $refSel]
+}
+
+#cut off list
+set output [open cut_off_3.5_water_list.dat w]
+for {set i 0} {$i < [molinfo top get numframes]} {incr i 1} {
+    set target [atomselect top "(same residue as water within 3.5 of nucleic and noh) and noh" frame $i]
+    foreach index [$target get index] {
+        puts -nonewline $output "$index "
+    }
+    puts $output ""
+}
+close $output
+
+#backbone water
+set water [atomselect top "(same residue as water within 3.5 of nucleic and noh) and not (same residue as water within 4 of (nucleic and noh and not backbone and not resid 5 11)) and noh" frame 0]
+foreach index [$water get index] {
+    set output [open backbone/water_dipole_${index}.txt w]
+    set target [atomselect top "index $index [expr $index + 1] [expr $index + 2]"]
+    for {set i 0} {$i < [molinfo top get numframes]} {incr i 1} {
+        $target frame $i
+        puts $output "$i [unitVec [measure dipole $target]]"
+    }
+    close $output
+}
+
+exit;
+
